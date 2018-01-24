@@ -32,9 +32,9 @@ class RustFPConan(ConanFile):
 
     # Use version ranges for dependencies unless there's a reason not to
     requires = (
-        "googletests",
-        "optional-lite",
-        "variant"
+        "gtest/[>=1.8.0]@bincrafters/stable",
+        "optional-lite/[>=2.3.0]@jgsogo/testing",
+        "variant/[>=1.3.0]@jgsogo/testing"
     )
 
     def source(self):
