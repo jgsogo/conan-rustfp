@@ -74,5 +74,9 @@ target_link_libraries(rustfp INTERFACE)
             pass
         cmake.install()
 
-    def package_info(self):
-        self.cpp_info.libs = tools.collect_libs(self)
+    def package(self):
+        self.copy(pattern="LICENSE", dst="license", src=self.source_subfolder)
+    
+    def package_id(self):
+        self.info.header_only()
+
