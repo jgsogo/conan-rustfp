@@ -3,6 +3,7 @@
 
 from conans import ConanFile, CMake, tools
 import os
+import shutil
 
 
 class RustFPConan(ConanFile):
@@ -32,7 +33,7 @@ class RustFPConan(ConanFile):
 
     # Use version ranges for dependencies unless there's a reason not to
     requires = (
-        "gtest/[>=1.8.0]@bincrafters/stable",
+        "gtest/[>=1.8.0]@jgsogo/testing",
         "optional-lite/[>=2.3.0]@jgsogo/testing",
         "variant/[>=1.3.0]@jgsogo/testing"
     )
@@ -42,9 +43,13 @@ class RustFPConan(ConanFile):
         tools.get("{0}/archive/{1}.tar.gz".format(source_url, self.version))
         extracted_dir = self.name + "-" + self.version
 
-        # Work to remove 'deps' (conan will handle them)
-        remove('deps')
-        delete_from_file('add_subdirectory(deps))
+        # Work to remove 'deps' directory (conan will handle them)
+        shutil.rmtree(os.path.join(extracted_dir, "deps"))
+        tools.replace_in_file(os.path.join(extracted_dir, "CMakeLists.txt"), "add_subdirectory(deps/optional-lite)", "")
+        tools.replace_in_file(os.path.join(extracted_dir, "CMakeLists.txt"), "add_subdirectory(deps/variant)", "")
+        tools.replace_in_file(os.path.join(extracted_dir, "CMakeLists.txt"), "install(DIRECTORY deps/optional-lite/include/nonstd DESTINATION include)", "")
+        tools.replace_in_file(os.path.join(extracted_dir, "CMakeLists.txt"), "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/deps/optional-lite/include>", "")
+        tools.replace_in_file(os.path.join(extracted_dir, "CMakeLists.txt"), "add_subdirectory(deps/googletest/googletest)", "")
         
         #Rename to "source_subfolder" is a convention to simplify later steps
         os.rename(extracted_dir, self.source_subfolder)
@@ -55,7 +60,7 @@ class RustFPConan(ConanFile):
         cmake.configure(build_folder=self.build_subfolder)
         cmake.build()
         if self.options.build_tests:
-            # Run tests
+            cmake.test()
         cmake.install()
 
     def package_info(self):
